@@ -144,7 +144,7 @@ void orbit_boot(uint32_t OMC_APB_BASE_ADDR, uint32_t OMC_SECURE_APB_BASE_ADDR, u
     //------ training start ------
     tmp = apb_read(OMC_APB_BASE_ADDR + 0x518);
     while((tmp & 0x00000002) != 0x00000000) {
-      tmp = apb_read(PHY_APB_BASE_ADDR + (0 +1 << 2)); //read freq_change_req_type
+      tmp = apb_read(PHY_APB_BASE_ADDR + (1 << 2)); //read freq_change_req_type
       if((tmp & 0x00000020) == 0x00000020) { //judge freq_change_req
         switch(tmp & 0x0000001f) { //judge freq_change_req_type
           case 0: 

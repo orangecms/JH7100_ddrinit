@@ -443,65 +443,28 @@ static int init_ddr(void)
   
   uint64_t base_addr = U74_SYS_PORT_DDRC_BASE_ADDR;
 
-  ///printf_led("Main start");
-
   //Set PLL to 15750M
   //_ASSERT_RESET_rstgen_rstn_ddrphy_apb_ //reset ddrphy,unvalid
   _SWITCH_CLOCK_clk_dla_root_SOURCE_clk_osc_sys_;
   //SCFG_PLL [31:24] [23:16] [15:8]   [7:4] [3]    [2]   [1] [0]
   //          OD      BWADJ  CLKFDIV  CLKR  bypass infb  pd  rst
-#if defined(DDR_2133)
+  // NOTE: WE ARE HERE
   MA_OUTW(syscon_sysmain_ctrl_SCFG_pll1_REG_ADDR,0x292905);//set reset
   udelay(10); //wait(500*(1/25M))
   MA_OUTW(syscon_sysmain_ctrl_SCFG_pll1_REG_ADDR,0x0292904);//clear reset
   udelay(10); //wait(500*(1/25M))
-#elif defined(DDR_2800)
-  MA_OUTW(syscon_sysmain_ctrl_SCFG_pll1_REG_ADDR,0x373705);//set reset
-  udelay(10); //wait(500*(1/25M))
-  MA_OUTW(syscon_sysmain_ctrl_SCFG_pll1_REG_ADDR,0x0373704);//clear reset
-  udelay(10); //wait(500*(1/25M))
-#elif defined(DDR_3200)
-  MA_OUTW(syscon_sysmain_ctrl_SCFG_pll1_REG_ADDR,0x3f3f05);//set reset
-  udelay(10); //wait(500*(1/25M))
-  MA_OUTW(syscon_sysmain_ctrl_SCFG_pll1_REG_ADDR,0x03f3f04);//clear reset
-  udelay(10); //wait(500*(1/25M))
-#endif
 
   _SWITCH_CLOCK_clk_dla_root_SOURCE_clk_pll1_out_;
-  //_CLEAR_RESET_rstgen_rstn_ddrphy_apb_ //clear reset of ddrphy,unvalid
 
-  //ddrc_clock=400M test
-  //_SWITCH_CLOCK_clk_ddrc0_SOURCE_clk_ddrpll_div4_;
-  //_SWITCH_CLOCK_clk_ddrc1_SOURCE_clk_ddrpll_div4_;
-  //ddrc_clock=800M
-  //_SWITCH_CLOCK_clk_ddrc0_SOURCE_clk_ddrpll_div2_;
-  //_SWITCH_CLOCK_clk_ddrc1_SOURCE_clk_ddrpll_div2_;
-  //12.5M
   _SWITCH_CLOCK_clk_ddrc0_SOURCE_clk_ddrosc_div2_;
   _SWITCH_CLOCK_clk_ddrc1_SOURCE_clk_ddrosc_div2_; 
   
   _ENABLE_CLOCK_clk_ddrc0_;
   _ENABLE_CLOCK_clk_ddrc1_;
 
-#if 0
-  _ENABLE_CLOCK_clk_ddrphy_apb_ ;
-  _CLEAR_RESET_rstgen_rstn_ddrphy_apb_ ;
-    _ENABLE_CLOCK_clk_dla_bus_ ;
-    _ENABLE_CLOCK_clk_dla_axi_ ;
-    _ENABLE_CLOCK_clk_dlanoc_axi_ ;
-    _ENABLE_CLOCK_clk_dla_apb_ ;
-    _ENABLE_CLOCK_clk_dlaslv_axi_ ;
-
-
-    _CLEAR_RESET_rstgen_rstn_dla_axi_ ;
-    _CLEAR_RESET_rstgen_rstn_dlanoc_axi_ ;
-    _CLEAR_RESET_rstgen_rstn_dla_apb_ ;
-    _CLEAR_RESET_rstgen_rstn_dlaslv_axi_ ;
-#endif
-
   //---- config ddrphy0/omc0 ----
-  for(int ddr_num=0; ddr_num<2; ddr_num++) {
-    if(ddr_num == 0) {
+  for (int ddr_num=0; ddr_num<2; ddr_num++) {
+    if (ddr_num == 0) {
       OMC_APB_BASE_ADDR        = OMC_CFG0_BASE_ADDR;
       OMC_SECURE_APB_BASE_ADDR = OMC_CFG0_BASE_ADDR+0x1000;
       PHY_APB_BASE_ADDR        = DDRPHY0_CSR_BASE_ADDR;
@@ -510,89 +473,61 @@ static int init_ddr(void)
       OMC_SECURE_APB_BASE_ADDR = OMC_CFG1_BASE_ADDR+0x1000;
       PHY_APB_BASE_ADDR        = DDRPHY1_CSR_BASE_ADDR;
     }
-    //reg_wr_test;
 
-    //`ifdef G_OPENEDGE_DDRPHY
-    //  `include "noc/continue_wr/orbit_cfg/orbit_boot.c"
-    //`else
-#if 0
-      #include "./ddrphy_cfg/regconfig.h.sim_PI.C"
-      #include "./ddrphy_cfg/regconfig.h.sim_PHY.C"
-#else
-      regconfig_h_sim_pi(OMC_APB_BASE_ADDR,  OMC_SECURE_APB_BASE_ADDR,  PHY_APB_BASE_ADDR);
-      regconfig_h_sim_phy(OMC_APB_BASE_ADDR,  OMC_SECURE_APB_BASE_ADDR,  PHY_APB_BASE_ADDR);
-#endif
+    regconfig_h_sim_pi(OMC_APB_BASE_ADDR,  OMC_SECURE_APB_BASE_ADDR,  PHY_APB_BASE_ADDR);
+    regconfig_h_sim_phy(OMC_APB_BASE_ADDR,  OMC_SECURE_APB_BASE_ADDR,  PHY_APB_BASE_ADDR);
     
-    //#include "./ddrc_cfg/lpddr4_1600_cl28_bl16/orbit_boot_8gx16.v"
     regconfig_pi_start(OMC_APB_BASE_ADDR,  OMC_SECURE_APB_BASE_ADDR,  PHY_APB_BASE_ADDR, ddr_num);
            
-    if(ddr_num == 0) //ddrc_clock=12.5M
-    {
+    if (ddr_num == 0) /* ddrc_clock=12.5M */ {
       _SWITCH_CLOCK_clk_ddrc0_SOURCE_clk_ddrosc_div2_;
-      //_SWITCH_CLOCK_clk_ddrc0_SOURCE_clk_ddrpll_div4_;
-    }
-    else
-    {
+    } else {
       _SWITCH_CLOCK_clk_ddrc1_SOURCE_clk_ddrosc_div2_;
     }
     udelay(300);
-    apb_write(PHY_APB_BASE_ADDR + (0 +0 << 2), 0x01);//release dll_rst_n
+    apb_write(PHY_APB_BASE_ADDR, 0x01); //release dll_rst_n
     udelay(300);
     
     orbit_boot(OMC_APB_BASE_ADDR,  OMC_SECURE_APB_BASE_ADDR,  PHY_APB_BASE_ADDR, ddr_num);
-
-    //`endif
   }
+  //---- END config ddrphy0/omc0 ----
 
- #if 1
-    //while(1)
-    {
+  // DRAM test with 4 different patterns: a5, 5a, 00, ff
+  for (i = 0; i < 0x80000; i++) {
+      writel(0xa5a5a5a5, 0x1000000000 + i *4);
+      tmp = readl(0x1000000000 + i *4);
+      if (tmp != 0xa5a5a5a5) {
+          printk("error addr %d = 0x%x\r\n", i *4, tmp);
+  				fail_flag = -1;
+      }
 
-        for(i = 0; i < 0x80000; i++)
-        {
-            writel(0xa5a5a5a5, 0x1000000000 + i *4);
-            tmp = readl(0x1000000000 + i *4);
-            if(tmp != 0xa5a5a5a5)
-            {
-                printk("error addr %d = 0x%x\r\n", i *4, tmp);
-				fail_flag = -1;
-            }
+      writel(0x5a5a5a5a, 0x1000000000 + i *4);
+      tmp = readl(0x1000000000 + i *4);
+      if (tmp != 0x5a5a5a5a) {
+          printk("error addr %d = 0x%x\r\n", i *4, tmp);
+  				fail_flag = -1;
+      }
 
-            writel(0x5a5a5a5a, 0x1000000000 + i *4);
-            tmp = readl(0x1000000000 + i *4);
-            if(tmp != 0x5a5a5a5a)
-            {
-                printk("error addr %d = 0x%x\r\n", i *4, tmp);
-				fail_flag = -1;
-            }
+      writel(0x00000000, 0x1000000000 + i *4);
+      tmp = readl(0x1000000000 + i *4);
+      if (tmp != 0x00000000) {
+          printk("error addr %d = 0x%x\r\n", i *4, tmp);
+				  fail_flag = -1;
+      }
 
+      writel(0xffffffff, 0x1000000000 + i *4);
+      tmp = readl(0x1000000000 + i *4);
+      if (tmp != 0xffffffff) {
+          printk("error addr %d = 0x%x\r\n", i *4, tmp);
+          fail_flag = -1;
+      }
 
-            writel(0x00000000, 0x1000000000 + i *4);
-            tmp = readl(0x1000000000 + i *4);
-            if(tmp != 0x00000000)
-            {
-                printk("error addr %d = 0x%x\r\n", i *4, tmp);
-				fail_flag = -1;
-            }
-
-
-
-            writel(0xffffffff, 0x1000000000 + i *4);
-            tmp = readl(0x1000000000 + i *4);
-            if(tmp != 0xffffffff)
-            {
-                printk("error addr %d = 0x%x\r\n", i *4, tmp);
-				fail_flag = -1;
-            }
-
-			if((i% 262144) == 0)						
-			{								
-				count++;								
-				printk("ddr 0x%x, %dM test\r\n",(i * 4), count);						
+      // print progress
+			if ((i % 262144) == 0) {								
+		   		count++;								
+			  	printk("ddr 0x%x, %dM test\r\n",(i * 4), count);						
 			}
-        }
-    }
- #endif
+   }
 }
 
 /*only hartid 0 call this function*/
@@ -610,7 +545,8 @@ void BootMain(void)
 	{
 		_SET_SYSCON_REG_register68_SCFG_disable_u74_memaxi_remap(1);
 #if defined(DDR_2133)
-		  printk("DDR clk 2133M,Version: %s\r\n",VERSION);
+		  // WE ARE DOING THIS !!!!!!!!  
+    printk("DDR clk 2133M,Version: %s\r\n",VERSION);
 #elif defined(DDR_2800)
 		  printk("DDR clk 2800M,Version: %s\r\n",VERSION);
 #elif defined(DDR_3200)
@@ -620,6 +556,7 @@ void BootMain(void)
 	else
 		printk("End init lpddr4, test ddr fail\r\n");
 
+// NOT APPLICABLE
 #if (UBOOT_EXEC_AT_NBDLA_2M == 1)
 	printk("init nbdla 2M ram\r\n");
 	_SET_SYSCON_REG_register16_SCFG_nbdla_clkgating_en(1);
