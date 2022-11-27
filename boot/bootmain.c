@@ -474,10 +474,9 @@ static int init_ddr(void)
       PHY_APB_BASE_ADDR        = DDRPHY1_CSR_BASE_ADDR;
     }
 
-    regconfig_h_sim_pi(OMC_APB_BASE_ADDR,  OMC_SECURE_APB_BASE_ADDR,  PHY_APB_BASE_ADDR);
-    regconfig_h_sim_phy(OMC_APB_BASE_ADDR,  OMC_SECURE_APB_BASE_ADDR,  PHY_APB_BASE_ADDR);
-    
-    regconfig_pi_start(OMC_APB_BASE_ADDR,  OMC_SECURE_APB_BASE_ADDR,  PHY_APB_BASE_ADDR, ddr_num);
+    regconfig_h_sim_pi(OMC_APB_BASE_ADDR, OMC_SECURE_APB_BASE_ADDR, PHY_APB_BASE_ADDR);
+    regconfig_h_sim_phy(OMC_APB_BASE_ADDR, OMC_SECURE_APB_BASE_ADDR, PHY_APB_BASE_ADDR);
+    regconfig_pi_start(OMC_APB_BASE_ADDR, OMC_SECURE_APB_BASE_ADDR, PHY_APB_BASE_ADDR, ddr_num);
            
     if (ddr_num == 0) /* ddrc_clock=12.5M */ {
       _SWITCH_CLOCK_clk_ddrc0_SOURCE_clk_ddrosc_div2_;
