@@ -594,13 +594,15 @@ apb_write(PHY_APB_BASE_ADDR + (4096 +1849 <<2), 0x3f); //DENALI_PHY_1849_DATA
 apb_write(PHY_APB_BASE_ADDR + (4096 +1850 <<2), 0x70000); //DENALI_PHY_1850_DATA
 apb_write(PHY_APB_BASE_ADDR + (4096 +1851 <<2), 0x190000); //DENALI_PHY_1851_DATA
 
-//PHY_DSLICE_PAD_BOOSTPN_SETTING_x
+//PHY_DSLICE_PAD_BOOSTPN_SETTING
+// BUG! Those are PHY registers, not PI!
 tmp = apb_read(PHY_APB_BASE_ADDR + ((4096 + 130) <<2)); //DENALI_PI_130_DATA
 apb_write(PHY_APB_BASE_ADDR + ((4096 + 130) <<2), tmp|0xff0000); //DENALI_PI_130_DATA
 tmp = apb_read(PHY_APB_BASE_ADDR + ((4096 + 386) <<2)); //DENALI_PI_386_DATA
 apb_write(PHY_APB_BASE_ADDR + ((4096 + 386) <<2), tmp|0xff0000); //DENALI_PI_386_DATA
 tmp = apb_read(PHY_APB_BASE_ADDR + ((4096 + 642) <<2)); //DENALI_PI_642_DATA
-apb_write(PHY_APB_BASE_ADDR + (2048 +642 <<2), tmp|0x66000000); //DENALI_PI_642_DATA
+// BUG! The register read from was different from the one that is written to!
+apb_write(PHY_APB_BASE_ADDR + (4096 +642 <<2), tmp|0x66000000); //DENALI_PI_642_DATA
 tmp = apb_read(PHY_APB_BASE_ADDR + ((4096 + 898) <<2)); //DENALI_PI_898_DATA
 apb_write(PHY_APB_BASE_ADDR + ((4096 + 898) <<2), tmp|0x66000000); //DENALI_PI_898_DATA
 
